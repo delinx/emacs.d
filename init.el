@@ -10,6 +10,11 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+;;; --- Custom File
+
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file 'noerror)
+
 ;;; --- Visual
 
 (setq inhibit-startup-message t)
@@ -38,6 +43,11 @@
 
 (setq-default cursor-type 'box)
 (blink-cursor-mode -1)
+
+;; Custom patch for cursor, important
+(when (eq system-type 'windows-nt)
+  (setq w32-mihails-cursor-color "black")
+  (w32-update-mihails-cursor-color))
 
 (use-package nerd-icons)
 
@@ -101,7 +111,6 @@
 ;;; --- Evil
 
 (setq select-enable-clipboard t
-      x-select-enable-clipboard t
       save-interprogram-paste-before-kill t
       x-select-enable-primary nil)
 
@@ -111,7 +120,6 @@
         evil-want-keybinding nil
         evil-want-C-u-scroll t
         evil-undo-system 'undo-redo
-        evil-want-clipboard t
         evil-normal-state-cursor   '(box)
         evil-insert-state-cursor   '(box)
         evil-visual-state-cursor   '(box)
@@ -168,19 +176,22 @@
 (use-package marginalia
   :config (marginalia-mode 1))
 
+(use-package hotfuzz
+  :ensure t)
+
 (use-package orderless
   :config
-  (setq completion-styles '(orderless basic)
-        completion-category-overrides '((command (styles orderless basic))
-                                        (file    (styles orderless basic))
-                                        (symbol  (styles orderless basic)))))
+  (setq completion-styles '(hotfuzz orderless basic)
+        completion-category-overrides '((command (styles hotfuzz orderless basic))
+                                        (file    (styles hotfuzz orderless basic))
+                                        (symbol  (styles hotfuzz orderless basic)))))
 
 (use-package corfu
   :custom
   (corfu-cycle t)
   (corfu-auto nil)
   (corfu-quit-at-boundary nil)
-  (corfu-quit-no-match nil)
+  (corfu-quit-no-match t)
   :bind (:map corfu-map
               ("TAB"   . corfu-next)
               ([tab]   . corfu-next)
@@ -200,6 +211,7 @@
   (setq which-key-idle-delay 1.0))
 
 (use-package centaur-tabs
+  :after projectile
   :config
   (centaur-tabs-mode t)
   (setq centaur-tabs-style "bar"
@@ -219,9 +231,13 @@
   :config
   (setq treemacs-width 25
         treemacs-show-hidden-files t
-        treemacs-position 'right
-        treemacs-follow-mode t
-        treemacs-filewatch-mode t))
+        treemacs-position 'right)
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t))
+
+(add-hook 'treemacs-mode-hook
+          (lambda ()
+            (text-scale-set -1.5)))
 
 (use-package treemacs-evil
   :after (treemacs evil))
