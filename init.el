@@ -52,10 +52,15 @@
 
 ;;; --- Font
 (set-face-attribute 'default nil
-  :font "Iosevka"
+  :font "Iosevka:antialias=standard"
   :height 190
   :weight 'normal)   ; weight 400 = normal
 ;;(setq-default line-spacing 0.5)
+
+(defvar light-mode nil)
+(if light-mode
+  (set-frame-font "Iosevka-19.0:antialias=subpixel" nil t)
+  (set-frame-font "Iosevka-19.0:antialias=standard" nil t))
 
 ;;; Ligatures (Iosevka)
 (use-package ligature
