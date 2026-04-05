@@ -1,68 +1,65 @@
 ;;; -*- lexical-binding: t; -*-
 
-;;; --- Visual
+;;; --- Package Manager
 
-(setq default-frame-alist
-      '((width  . 130)
-        (height . 40)
-        (left   . 1300)
-        (top    . 600)))
-
- ;; A nice theme
- (use-package doom-themes
-   :config
-   (load-theme 'doom-one t))
-
-(setq-default cursor-type 'box)  ; block cursor
-(blink-cursor-mode -1)           ; no blinking
-(setq evil-normal-state-cursor   '(box)
-      evil-insert-state-cursor   '(box)
-      evil-visual-state-cursor   '(box)
-      evil-replace-state-cursor  '(box)
-      evil-operator-state-cursor '(box)
-      evil-emacs-state-cursor    '(box))
-
-(setq w32-mihails-cursor-color "black")
-(w32-update-mihails-cursor-color)
-
-(setq-default display-fill-column-indicator-column 120)
-(global-display-fill-column-indicator-mode 1)
-
-(show-paren-mode 1)
-
-(setq-default display-line-numbers-width 4)
-
-;;; --- Scroll
-(setq scroll-margin 8)
-
-;;; --- Package manager
-
-;; Package sources
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
-
-;; Refresh package list if not done yet
 (unless package-archive-contents
   (package-refresh-contents))
-
-;; use-package is built-in on Emacs 29+, but ensure it's set up
 (require 'use-package)
-(setq use-package-always-ensure t) ; auto-install packages if missing
+(setq use-package-always-ensure t)
+
+;;; --- Visual
+
+(setq inhibit-startup-message t)
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+(menu-bar-mode t)
+(set-fringe-mode 10)
+(column-number-mode t)
+
+(setq default-frame-alist
+      '((width  . 150)
+        (height . 42)
+        (left   . 1300)
+        (top    . 600)))
+
+(use-package doom-themes
+  :config
+  (load-theme 'doom-one t))
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom
+  (doom-modeline-icon t)
+  (doom-modeline-major-mode-icon t)
+  (doom-modeline-buffer-state-icon t))
+
+(setq-default cursor-type 'box)
+(blink-cursor-mode -1)
+
+(use-package nerd-icons)
+
+(use-package nerd-icons-completion
+  :after (nerd-icons vertico)
+  :config (nerd-icons-completion-mode))
+
+(use-package nerd-icons-corfu
+  :after (nerd-icons corfu)
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 ;;; --- Font
-(set-face-attribute 'default nil
-  :font "Iosevka:antialias=standard"
-  :height 190
-  :weight 'normal)   ; weight 400 = normal
-;;(setq-default line-spacing 0.5)
 
 (defvar light-mode nil)
+
 (if light-mode
-  (set-frame-font "Iosevka-19.0:antialias=subpixel" nil t)
+    (set-frame-font "Iosevka-19.0:antialias=subpixel" nil t)
   (set-frame-font "Iosevka-19.0:antialias=standard" nil t))
 
-;;; Ligatures (Iosevka)
+(setq-default line-spacing 0.1)
+
 (use-package ligature
   :config
   (ligature-set-ligatures 'prog-mode
@@ -72,151 +69,179 @@
       ":=" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "++" "+++"))
   (global-ligature-mode t))
 
+;;; --- Behaviour
+
+(setq-default
+ tab-width 4
+ indent-tabs-mode nil
+ fill-column 120)
+
+(setq
+ make-backup-files nil
+ auto-save-default nil
+ create-lockfiles nil
+ ring-bell-function 'ignore
+ scroll-conservatively 101
+ scroll-margin 8
+ display-line-numbers-type 'relative)
+
+(setq-default display-line-numbers-width 4)
+
+(global-display-line-numbers-mode t)
+(save-place-mode 1)
+(global-auto-revert-mode t)
+(recentf-mode 1)
+(show-paren-mode 1)
+
+(setq-default display-fill-column-indicator-column 120)
+(global-display-fill-column-indicator-mode 1)
+
+(setq eldoc-display-functions '(eldoc-display-in-echo-area))
+
 ;;; --- Evil
+
+(setq select-enable-clipboard t
+      x-select-enable-clipboard t
+      save-interprogram-paste-before-kill t
+      x-select-enable-primary nil)
 
 (use-package evil
   :init
-  ;; These MUST be set before evil loads
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil) ; required if using evil-collection
-  (setq evil-want-C-u-scroll t)  ; C-u scrolls up like vim
-  (setq evil-undo-system 'undo-redo) ; use native undo-redo (Emacs 28+)
+  (setq evil-want-integration t
+        evil-want-keybinding nil
+        evil-want-C-u-scroll t
+        evil-undo-system 'undo-redo
+        evil-want-clipboard t
+        evil-normal-state-cursor   '(box)
+        evil-insert-state-cursor   '(box)
+        evil-visual-state-cursor   '(box)
+        evil-replace-state-cursor  '(box)
+        evil-operator-state-cursor '(box)
+        evil-emacs-state-cursor    '(box))
   :config
   (evil-set-leader 'normal (kbd "SPC"))
   (evil-set-leader 'visual (kbd "SPC"))
   (evil-mode 1))
 
-;; evil-collection provides evil bindings for many built-in modes
-;; (dired, magit, help buffers, etc.)
 (use-package evil-collection
   :after evil
   :config
   (evil-collection-init))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
- ;;; --- Langs
- (with-eval-after-load 'evil
-   (defalias #'forward-evil-word #'forward-evil-symbol)
-   (setq-default evil-symbol-word-search t))
+(with-eval-after-load 'evil
+  (defalias #'forward-evil-word #'forward-evil-symbol)
+  (setq-default evil-symbol-word-search t))
 
- ;;; --- Binds
- (with-eval-after-load 'evil
-   (evil-define-key 'normal 'global
-     (kbd "K") #'eldoc-print-current-symbol-info))
+;;; --- Keybinds
 
- (setq eldoc-display-functions '(eldoc-display-in-echo-area))
+(add-hook 'minibuffer-setup-hook
+          (lambda ()
+            (local-set-key (kbd "C-v") #'clipboard-yank)))
 
- (with-eval-after-load 'evil
-   (evil-define-key '(normal visual motion) 'global
-     (kbd "C-s") #'previous-buffer
-     (kbd "C-t") #'next-buffer
-     (kbd "C-w") #'kill-current-buffer))
+(with-eval-after-load 'evil
+  (define-key evil-insert-state-map (kbd "C-v") #'clipboard-yank)
 
- ;;; --- Other
+  (evil-define-key 'visual 'global
+    (kbd "C-c") #'clipboard-kill-ring-save)
 
- (recentf-mode 1)
+  (evil-define-key '(normal visual motion) 'global
+    (kbd "C-w") #'kill-current-buffer
+    (kbd "K")   #'eldoc-print-current-symbol-info)
 
- ;;; UI Cleanup
- (setq inhibit-startup-message t)  ; no splash screen
- (scroll-bar-mode -1)              ; no scrollbar
- (tool-bar-mode -1)                ; no toolbar
- (menu-bar-mode t)                 ; no menu bar (optional, some like keeping it)
- (set-fringe-mode 10)              ; small breathing room on sides
+  (evil-define-key 'normal 'global
+    (kbd "<leader>ff") #'find-file
+    (kbd "<leader>fr") #'recentf-open-files
+    (kbd "<leader>bb") #'buffer-menu
+    (kbd "<leader>e")  #'treemacs
+    (kbd "<leader>pp") #'projectile-switch-project
+    (kbd "<leader>pa") #'projectile-add-known-project
+    (kbd "<leader>pf") #'projectile-find-file
+    (kbd "<leader>pc") #'projectile-compile-project
+    (kbd "<leader>x")  #'execute-extended-command
+    (kbd "<leader>w")  (lambda () (interactive) (kill-buffer-and-window))))
 
- ;;; Behaviour
- (setq-default
-  tab-width 4
-  indent-tabs-mode nil             ; spaces over tabs
-  fill-column 120)
+;;; --- Completion
 
- (setq
-  make-backup-files nil            ; no ~ backup files cluttering your dirs
-  auto-save-default nil            ; no #autosave# files
-  create-lockfiles nil
-  ring-bell-function 'ignore       ; no audible bell
-  scroll-conservatively 101        ; smooth scrolling (don't jump half-screen)
-  display-line-numbers-type 'relative) ; relative line numbers (great with evil)
+(use-package vertico
+  :config (vertico-mode 1))
 
- (global-display-line-numbers-mode t)
- (column-number-mode t)            ; show column in modeline
+(use-package marginalia
+  :config (marginalia-mode 1))
 
- ;;; Remember where you were in files
- (save-place-mode 1)
+(use-package orderless
+  :config
+  (setq completion-styles '(orderless basic)
+        completion-category-overrides '((command (styles orderless basic))
+                                        (file    (styles orderless basic))
+                                        (symbol  (styles orderless basic)))))
 
- ;;; Auto-reload files changed on disk
- (global-auto-revert-mode t)
+(use-package corfu
+  :custom
+  (corfu-cycle t)
+  (corfu-auto nil)
+  (corfu-quit-at-boundary nil)
+  (corfu-quit-no-match nil)
+  :bind (:map corfu-map
+              ("TAB"   . corfu-next)
+              ([tab]   . corfu-next)
+              ("S-TAB" . corfu-previous)
+              ("RET"   . corfu-insert))
+  :init
+  (global-corfu-mode)
+  (corfu-history-mode)
+  (corfu-popupinfo-mode)
+  (global-set-key (kbd "C-SPC") #'completion-at-point))
 
- ;;; Better minibuffer completions
- (setq completion-styles '(flex basic))
+;;; --- UI
 
- ;;; --- Packages
- ;; Better completion UI in minibuffer (replaces the default list)
- (use-package vertico
-   :config (vertico-mode 1))
+(use-package which-key
+  :config
+  (which-key-mode 1)
+  (setq which-key-idle-delay 1.0))
 
- ;; Adds rich annotations to vertico (file sizes, docstrings, etc.)
- (use-package marginalia
-   :config (marginalia-mode 1))
+(use-package centaur-tabs
+  :config
+  (centaur-tabs-mode t)
+  (setq centaur-tabs-style "bar"
+        centaur-tabs-height 32
+        centaur-tabs-set-icons t
+        centaur-tabs-show-new-tab-button nil
+        centaur-tabs-set-modified-marker t
+        centaur-tabs-modified-marker "●"
+        centaur-tabs-cycle-scope 'tabs)
+  (centaur-tabs-group-by-projectile-project)
+  (with-eval-after-load 'evil
+    (evil-define-key '(normal visual motion) 'global
+      (kbd "C-s") #'centaur-tabs-backward
+      (kbd "C-t") #'centaur-tabs-forward)))
 
- ;; Fuzzy search/filter everywhere
- (use-package orderless
-   :config
-   (setq completion-styles '(orderless basic)))
+(use-package treemacs
+  :config
+  (setq treemacs-width 25
+        treemacs-show-hidden-files t
+        treemacs-position 'right
+        treemacs-follow-mode t
+        treemacs-filewatch-mode t))
 
- ;; Which-key: shows keybinding hints after a pause — essential for learning
- (use-package which-key
-   :config
-   (which-key-mode 1)
-   (setq which-key-idle-delay 1.0))
+(use-package treemacs-evil
+  :after (treemacs evil))
 
- ;; Nicer modeline
- (use-package doom-modeline
-   :init (doom-modeline-mode 1))
+(use-package treemacs-projectile
+  :after (treemacs projectile))
 
- ;; Git integration
- (use-package magit
-   :commands magit-status)
+(use-package treemacs-nerd-icons
+  :after (treemacs nerd-icons)
+  :config (treemacs-load-theme "nerd-icons"))
 
- ;; Syntax highlighting for nearly every language
- (use-package treesit-auto
-   :config
-   (setq treesit-auto-install 'prompt) ; asks before auto-installing grammars
-   (global-treesit-auto-mode))
+;;; --- Tools
 
- ;;; Corfu
- (use-package corfu
-   :custom
-   (corfu-cycle t)
-   (corfu-auto nil)
-   (corfu-quit-at-boundary nil)
-   (corfu-quit-no-match nil)
-   :bind (:map corfu-map
-               ("TAB"    . corfu-next)
-               ([tab]    . corfu-next)
-               ("S-TAB"  . corfu-previous)
-               ("RET"    . corfu-insert))
-   :init
-   (global-corfu-mode)
-   (corfu-history-mode)
-   (corfu-popupinfo-mode)
-   (global-set-key (kbd "C-SPC") #'completion-at-point))
+(use-package magit
+  :commands magit-status)
 
- (use-package nerd-icons-completion
-   :after (nerd-icons vertico)
-   :config (nerd-icons-completion-mode))
+(use-package projectile
+  :config (projectile-mode +1))
 
- (use-package nerd-icons-corfu
-   :after (nerd-icons corfu)
-   :config
-   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+(use-package treesit-auto
+  :config
+  (setq treesit-auto-install 'prompt)
+  (global-treesit-auto-mode))
