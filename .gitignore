@@ -1,0 +1,42 @@
+# Compiled / byte-compiled
+*.elc
+
+# Package management (let package.el / straight / elpaca manage these)
+elpa/
+straight/
+elpaca/
+
+# Auto-save and backup files
+\#*\#
+.\#*
+*~
+
+# Transient/session state
+auto-save-list/
+tramp
+.cache/
+recentf
+bookmarks
+places
+savehist
+url/
+eln-cache/
+
+# Org mode
+.org-id-locations
+org-clock-save.el
+
+# LSP
+lsp-session
+
+# Projectile
+.projectile-bookmarks.eld
+
+# Tree-sitter grammars
+tree-sitter/
+
+# Undo tree
+undo-tree-history/
+
+# Lock files
+.#*
