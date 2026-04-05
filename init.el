@@ -1,5 +1,12 @@
 ;;; -*- lexical-binding: t; -*-
 
+;;; --- Rendering / Optimizations
+(setq redisplay-skip-fontification-on-input t)
+(setq gc-cons-threshold (* 512 1024 1024))  ; 512MB — replaced by gcmh below
+(setq native-comp-async-report-warnings-errors nil)
+(setq package-native-compile t)
+(pixel-scroll-precision-mode 1)
+
 ;;; --- Package Manager
 
 (require 'package)
@@ -14,6 +21,11 @@
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
+
+;;; --- Aliases
+
+(with-eval-after-load 'evil
+  (evil-ex-define-cmd "W" 'evil-write))
 
 ;;; --- Visual
 
@@ -45,7 +57,9 @@
 (blink-cursor-mode -1)
 
 ;; Custom patch for cursor, important
-(when (eq system-type 'windows-nt)
+(when (and (eq system-type 'windows-nt)
+           (boundp 'w32-mihails-cursor-color)
+           (fboundp 'w32-update-mihails-cursor-color))
   (setq w32-mihails-cursor-color "black")
   (w32-update-mihails-cursor-color))
 
@@ -65,8 +79,8 @@
 (defvar light-mode nil)
 
 (if light-mode
-    (set-frame-font "Iosevka-19.0:antialias=subpixel" nil t)
-  (set-frame-font "Iosevka-19.0:antialias=standard" nil t))
+    (set-frame-font "Iosevka-19.5:antialias=subpixel" nil t)
+  (set-frame-font "Iosevka-19.5:antialias=standard" nil t))
 
 (setq-default line-spacing 0.1)
 
@@ -101,18 +115,24 @@
 (save-place-mode 1)
 (global-auto-revert-mode t)
 (recentf-mode 1)
-(show-paren-mode 1)
 
 (setq-default display-fill-column-indicator-column 120)
 (global-display-fill-column-indicator-mode 1)
 
 (setq eldoc-display-functions '(eldoc-display-in-echo-area))
 
+;;; --- GC
+
+(use-package gcmh
+  :config
+  (setq gcmh-high-cons-threshold (* 512 1024 1024))
+  (gcmh-mode 1))
+
 ;;; --- Evil
 
 (setq select-enable-clipboard t
       save-interprogram-paste-before-kill t
-      x-select-enable-primary nil)
+      select-enable-primary nil)
 
 (use-package evil
   :init
@@ -134,6 +154,8 @@
 (use-package evil-collection
   :after evil
   :config
+  (setq evil-collection-mode-list
+        (remove 'xref evil-collection-mode-list))
   (evil-collection-init))
 
 (with-eval-after-load 'evil
@@ -141,6 +163,18 @@
   (setq-default evil-symbol-word-search t))
 
 ;;; --- Keybinds
+
+;;; Override minor mode — bindings here beat everything
+(defvar my-override-map (make-sparse-keymap))
+(define-minor-mode my-override-mode
+  "Global minor mode whose bindings always win."
+  :global t
+  :keymap my-override-map)
+(my-override-mode 1)
+(evil-make-intercept-map my-override-map)
+
+(define-key my-override-map (kbd "C-s") #'centaur-tabs-backward)
+(define-key my-override-map (kbd "C-t") #'centaur-tabs-forward)
 
 (add-hook 'minibuffer-setup-hook
           (lambda ()
@@ -152,13 +186,19 @@
   (evil-define-key 'visual 'global
     (kbd "C-c") #'clipboard-kill-ring-save)
 
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (evil-local-set-key 'normal (kbd "K") #'eldoc-print-current-symbol-info)))
+
   (evil-define-key '(normal visual motion) 'global
-    (kbd "C-w") #'kill-current-buffer
-    (kbd "K")   #'eldoc-print-current-symbol-info)
+    (kbd "C-w") #'kill-current-buffer  ; intentional — Evil window cmds not used
+    (kbd "gb") #'xref-go-back
+    (kbd "K") #'eldoc-print-current-symbol-info)
 
   (evil-define-key 'normal 'global
+    (kbd "<leader>x") #'execute-extended-command
     (kbd "<leader>ff") #'find-file
-    (kbd "<leader>fr") #'recentf-open-files
+    (kbd "<leader>fr") #'recentf-open
     (kbd "<leader>bb") #'buffer-menu
     (kbd "<leader>e")  #'treemacs
     (kbd "<leader>pp") #'projectile-switch-project
@@ -206,6 +246,7 @@
 ;;; --- UI
 
 (use-package which-key
+  :ensure nil  ; built-in since Emacs 30
   :config
   (which-key-mode 1)
   (setq which-key-idle-delay 1.0))
@@ -221,11 +262,7 @@
         centaur-tabs-set-modified-marker t
         centaur-tabs-modified-marker "●"
         centaur-tabs-cycle-scope 'tabs)
-  (centaur-tabs-group-by-projectile-project)
-  (with-eval-after-load 'evil
-    (evil-define-key '(normal visual motion) 'global
-      (kbd "C-s") #'centaur-tabs-backward
-      (kbd "C-t") #'centaur-tabs-forward)))
+  (centaur-tabs-group-by-projectile-project))
 
 (use-package treemacs
   :config
@@ -261,3 +298,38 @@
   :config
   (setq treesit-auto-install 'prompt)
   (global-treesit-auto-mode))
+
+;;; --- LSP (Eglot)
+
+(use-package eglot
+  :ensure nil  ; built-in
+  :hook ((c-ts-mode c-mode rust-ts-mode rust-mode) . eglot-ensure)
+  :config
+  (setq eglot-autoshutdown t
+        eglot-ignored-server-capabilities '(:inlayHintProvider)))
+
+(use-package eglot-booster
+  :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
+  :after eglot
+  :config (eglot-booster-mode))
+
+;;; --- Langs
+
+(add-hook 'kill-emacs-hook #'eglot-shutdown-all)
+
+; --- Jai
+(with-eval-after-load 'treesit
+  (add-to-list 'treesit-language-source-alist
+               '(jai "https://github.com/amaanq/tree-sitter-jai")))
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(jai-mode . ("jails"))))  ; or full path: ("C:/path/to/jails.exe")
+
+(use-package jai-mode
+  :vc (:url "https://github.com/elp-revive/jai-mode" :rev :newest)
+  :mode "\\.jai\\'"
+  :hook ((jai-mode . eglot-ensure)
+         (jai-mode . (lambda ()
+                       (setq-local tab-width 4
+                                   indent-tabs-mode nil)))))
