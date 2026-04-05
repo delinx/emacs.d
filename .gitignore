@@ -40,3 +40,5 @@ undo-tree-history/
 
 # Lock files
 .#*
+
+*.eld
