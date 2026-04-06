@@ -46,6 +46,11 @@
   :config
   (load-theme 'doom-one t))
 
+(add-to-list 'custom-theme-load-path
+             (expand-file-name "themes" user-emacs-directory))
+
+(load-theme 'delinx t)
+
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom
@@ -76,7 +81,7 @@
 
 ;;; --- Font
 
-(defvar light-mode nil)
+(defvar light-mode t)
 
 (if light-mode
     (set-frame-font "Iosevka-19.5:antialias=subpixel" nil t)
@@ -197,7 +202,7 @@
 
   (evil-define-key 'normal 'global
     (kbd "<leader>x") #'execute-extended-command
-    (kbd "<leader>ff") #'find-file
+    (kbd "<leader>ff") #'projectile-find-file
     (kbd "<leader>fr") #'recentf-open
     (kbd "<leader>bb") #'buffer-menu
     (kbd "<leader>e")  #'treemacs
