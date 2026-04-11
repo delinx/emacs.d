@@ -42,14 +42,14 @@
         (left   . 1300)
         (top    . 600)))
 
-(use-package doom-themes
-  :config
-  (load-theme 'doom-one t))
-
 (add-to-list 'custom-theme-load-path
              (expand-file-name "themes" user-emacs-directory))
 
-(load-theme 'delinx t)
+(load-theme 'doom-delcx-dusk t)
+
+(defvar delcx-themes
+  ;doom-delcx-parchment
+  '(doom-delcx-chalkboard doom-delcx-teal doom-delcx-amber doom-delcx-dusk))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -84,7 +84,7 @@
 (defvar light-mode t)
 
 (if light-mode
-    (set-frame-font "Iosevka-19.5:antialias=subpixel" nil t)
+    (set-frame-font "Iosevka-20.0:antialias=subpixel" nil t)
   (set-frame-font "Iosevka-19.5:antialias=standard" nil t))
 
 (setq-default line-spacing 0.1)
@@ -92,10 +92,24 @@
 (use-package ligature
   :config
   (ligature-set-ligatures 'prog-mode
-    '("<---" "<--" "<<-" "<-" "->" "-->" "--->"
-      "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">="
-      "<=>" "<==>" "<===>" "::" ":::" "==" "!=" "===" "!=="
-      ":=" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "++" "+++"))
+    '(
+      "-<<" "-<" "-<-" "<--" "<---" "<<-" "<-"
+      "->" "->>" "-->" "--->" "->-" ">-" ">>-"
+      "=<<" "=<" "=<=" "<==" "<===" "<<=" "<="
+      "=>" "=>>" "==>" "===>" "=>=" ">=" ">>="
+      "<->" "<-->" "<--->" "<---->"
+      "<=>" "<==>" "<===>" "<====>"
+      "::" ":::" "__"
+      "<~~" "</" "</>" "/>" "~~>"
+      "==" "!=" "/=" "~=" "<>" "===" "!==" "!===" "=/=" "=!="
+      "<:" ":=" "*=" "*+" ":>"
+      "<*" "<*>" "*>" "<|" "<|>" "|>"
+      "<." "<.>" ".>"
+      "(*" "*)" "/*" "*/" "[|" "|]" "{|" "|}"
+      "++" "+++"
+      "\\/" "/\\"
+      "|-" "-|"
+      "<!--" "<!--->"))
   (global-ligature-mode t))
 
 ;;; --- Behaviour
@@ -156,13 +170,6 @@
   (evil-set-leader 'visual (kbd "SPC"))
   (evil-mode 1))
 
-(use-package evil-collection
-  :after evil
-  :config
-  (setq evil-collection-mode-list
-        (remove 'xref evil-collection-mode-list))
-  (evil-collection-init))
-
 (with-eval-after-load 'evil
   (defalias #'forward-evil-word #'forward-evil-symbol)
   (setq-default evil-symbol-word-search t))
@@ -177,9 +184,6 @@
   :keymap my-override-map)
 (my-override-mode 1)
 (evil-make-intercept-map my-override-map)
-
-(define-key my-override-map (kbd "C-s") #'centaur-tabs-backward)
-(define-key my-override-map (kbd "C-t") #'centaur-tabs-forward)
 
 (add-hook 'minibuffer-setup-hook
           (lambda ()
@@ -196,27 +200,43 @@
               (evil-local-set-key 'normal (kbd "K") #'eldoc-print-current-symbol-info)))
 
   (evil-define-key '(normal visual motion) 'global
-    (kbd "C-w") #'kill-current-buffer  ; intentional — Evil window cmds not used
+    (kbd "<leader>kb") #'kill-current-buffer
     (kbd "gb") #'xref-go-back
     (kbd "K") #'eldoc-print-current-symbol-info)
 
+  (evil-define-key '(insert) 'global
+    (kbd "C-SPC") #'completion-at-point)
+
   (evil-define-key 'normal 'global
     (kbd "<leader>x") #'execute-extended-command
-    (kbd "<leader>ff") #'projectile-find-file
+    (kbd "<leader>ff") #'project-find-file
     (kbd "<leader>fr") #'recentf-open
     (kbd "<leader>bb") #'buffer-menu
+    (kbd "<leader>pp") #'project-switch-project
     (kbd "<leader>e")  #'treemacs
-    (kbd "<leader>pp") #'projectile-switch-project
-    (kbd "<leader>pa") #'projectile-add-known-project
-    (kbd "<leader>pf") #'projectile-find-file
-    (kbd "<leader>pc") #'projectile-compile-project
     (kbd "<leader>x")  #'execute-extended-command
-    (kbd "<leader>w")  (lambda () (interactive) (kill-buffer-and-window))))
+    (kbd "<leader>kk")  #'kill-current-buffer
+    (kbd "<leader>kw")  (lambda () (interactive) (kill-buffer-and-window))))
+
+
+
 
 ;;; --- Completion
 
 (use-package vertico
-  :config (vertico-mode 1))
+  :config
+  (vertico-mode 1)
+  (define-key vertico-map (kbd "TAB")       #'vertico-next)
+  (define-key vertico-map (kbd "<backtab>") #'vertico-previous))
+
+(use-package consult
+  :config
+  (setq completion-in-region-function
+        (lambda (&rest args)
+          (apply (if vertico-mode
+                     #'consult-completion-in-region
+                   #'completion--in-region)
+                 args))))
 
 (use-package marginalia
   :config (marginalia-mode 1))
@@ -231,23 +251,6 @@
                                         (file    (styles hotfuzz orderless basic))
                                         (symbol  (styles hotfuzz orderless basic)))))
 
-(use-package corfu
-  :custom
-  (corfu-cycle t)
-  (corfu-auto nil)
-  (corfu-quit-at-boundary nil)
-  (corfu-quit-no-match t)
-  :bind (:map corfu-map
-              ("TAB"   . corfu-next)
-              ([tab]   . corfu-next)
-              ("S-TAB" . corfu-previous)
-              ("RET"   . corfu-insert))
-  :init
-  (global-corfu-mode)
-  (corfu-history-mode)
-  (corfu-popupinfo-mode)
-  (global-set-key (kbd "C-SPC") #'completion-at-point))
-
 ;;; --- UI
 
 (use-package which-key
@@ -256,18 +259,14 @@
   (which-key-mode 1)
   (setq which-key-idle-delay 1.0))
 
-(use-package centaur-tabs
-  :after projectile
-  :config
-  (centaur-tabs-mode t)
-  (setq centaur-tabs-style "bar"
-        centaur-tabs-height 32
-        centaur-tabs-set-icons t
-        centaur-tabs-show-new-tab-button nil
-        centaur-tabs-set-modified-marker t
-        centaur-tabs-modified-marker "●"
-        centaur-tabs-cycle-scope 'tabs)
-  (centaur-tabs-group-by-projectile-project))
+(use-package iflipb
+  :ensure t
+  :custom
+  (iflipb-wrap-around t)
+  (iflipb-ignore-buffers (list "^[*]"))
+  :bind (:map my-override-map
+         ("C-s" . iflipb-previous-buffer)
+         ("C-t" . iflipb-next-buffer)))
 
 (use-package treemacs
   :config
@@ -284,9 +283,6 @@
 (use-package treemacs-evil
   :after (treemacs evil))
 
-(use-package treemacs-projectile
-  :after (treemacs projectile))
-
 (use-package treemacs-nerd-icons
   :after (treemacs nerd-icons)
   :config (treemacs-load-theme "nerd-icons"))
@@ -296,13 +292,15 @@
 (use-package magit
   :commands magit-status)
 
-(use-package projectile
-  :config (projectile-mode +1))
-
-(use-package treesit-auto
+(use-package tree-sitter
   :config
-  (setq treesit-auto-install 'prompt)
-  (global-treesit-auto-mode))
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+(use-package tree-sitter-langs
+  :after tree-sitter
+  :init
+  (setq tree-sitter-langs-grammar-dir "C:/other/grammar"))
 
 ;;; --- LSP (Eglot)
 
@@ -318,18 +316,26 @@
   :after eglot
   :config (eglot-booster-mode))
 
+(use-package popper
+  :ensure t
+  :bind (("M-p"   . popper-cycle)
+         ("C-M-p" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))
+
 ;;; --- Langs
 
-(add-hook 'kill-emacs-hook #'eglot-shutdown-all)
-
 ; --- Jai
-(with-eval-after-load 'treesit
-  (add-to-list 'treesit-language-source-alist
-               '(jai "https://github.com/amaanq/tree-sitter-jai")))
-
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
-               '(jai-mode . ("jails"))))  ; or full path: ("C:/path/to/jails.exe")
+               '(jai-mode . ("jails"))))
 
 (use-package jai-mode
   :vc (:url "https://github.com/elp-revive/jai-mode" :rev :newest)
@@ -338,3 +344,6 @@
          (jai-mode . (lambda ()
                        (setq-local tab-width 4
                                    indent-tabs-mode nil)))))
+(add-hook 'jai-mode-hook
+          (lambda ()
+            (setq-local beginning-of-defun-function nil)))

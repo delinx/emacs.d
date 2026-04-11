@@ -20,8 +20,7 @@
       (bg-dark     "#031b1b")   ; elevated_surface / status_bar / panel
       (bg-hl       "#0a2e2e")   ; active_line (editor.active_line.background ~#0525251a lifted)
       (bg-hover    "#2d4132")   ; element.hover / highlighted_line
-      (bg-sel      "#c3d2e1")   ; region — toned-down vim.visual (#c3d2e1 @ dark bg)
-                                ; UNCERTAIN: "#c3d2e1" for full-contrast Zed match
+      (bg-sel      "#c3d2e1")   ; region — full-contrast vim.visual
 
       ;; borders
       (border      "#2B2B2B")
@@ -52,7 +51,7 @@
 
    ;; core
    `(default                    ((t (:background ,bg :foreground ,fg))))
-   `(cursor                     ((t (:background ,white :foreground ,fg ))))
+   `(cursor                     ((t (:background ,white :foreground ,fg))))
    `(fringe                     ((t (:background ,bg :foreground ,fg-subtle))))
    `(region                     ((t (:background ,bg-sel :foreground ,black :extend t))))
    `(secondary-selection        ((t (:background ,bg-hover))))
@@ -86,7 +85,7 @@
    `(isearch         ((t (:background ,white :foreground ,punch :weight bold))))
    `(isearch-group-1 ((t (:background ,turquoise :foreground ,bg))))
    `(isearch-group-2 ((t (:background ,riptide :foreground ,bg))))
-   `(lazy-highlight  ((t (:background "#3a2e18" :foreground ,fg)))) ; #c8b49166 over bg
+   `(lazy-highlight  ((t (:background "#3a2e18" :foreground ,fg))))
    `(isearch-fail    ((t (:background ,punch :foreground ,white))))
 
    ;; links — link_text=riptide, link_uri=turquoise
@@ -118,7 +117,7 @@
    `(font-lock-escape-face               ((t (:foreground ,punch :weight bold))))
    `(font-lock-keyword-face              ((t (:foreground ,mystic))))
    `(font-lock-builtin-face              ((t (:foreground ,mystic))))
-   `(font-lock-constant-face             ((t (:foreground ,mystic :slant italic))))
+   `(font-lock-constant-face             ((t (:foreground ,mystic :slant normal))))
    `(font-lock-function-name-face        ((t (:foreground ,fg))))
    `(font-lock-function-call-face        ((t (:foreground ,fg))))
    `(font-lock-variable-name-face        ((t (:foreground ,fg))))
@@ -211,13 +210,14 @@
    `(markdown-list-face        ((t (:foreground ,fg))))
    `(markdown-pre-face         ((t (:foreground ,turquoise))))
 
-   ;; tree-sitter (Emacs 29+ built-in treesit + tree-sitter-langs)
-   `(treesit-font-lock-face                    ((t (:inherit default))))
+   ;; tree-sitter — explicit colors, no inherit, to survive defface resets
+   `(treesit-font-lock-face                    ((t (:foreground ,fg))))
    `(tree-sitter-hl-face:comment               ((t (:foreground ,green :slant italic))))
    `(tree-sitter-hl-face:doc                   ((t (:foreground ,turquoise :slant italic))))
    `(tree-sitter-hl-face:string                ((t (:foreground ,turquoise))))
    `(tree-sitter-hl-face:string.special        ((t (:foreground ,turquoise))))
    `(tree-sitter-hl-face:string.escape         ((t (:foreground ,punch :weight bold))))
+   `(tree-sitter-hl-face:keyword.directive ((t (:foreground ,punch :slant italic))))
    `(tree-sitter-hl-face:keyword               ((t (:foreground ,mystic))))
    `(tree-sitter-hl-face:keyword.control       ((t (:foreground ,white))))
    `(tree-sitter-hl-face:keyword.return        ((t (:foreground ,punch))))
@@ -238,7 +238,7 @@
    `(tree-sitter-hl-face:property              ((t (:foreground ,fg))))
    `(tree-sitter-hl-face:number                ((t (:foreground ,riptide))))
    `(tree-sitter-hl-face:boolean               ((t (:foreground ,riptide :weight bold))))
-   `(tree-sitter-hl-face:constant              ((t (:foreground ,mystic :slant italic))))
+   `(tree-sitter-hl-face:constant              ((t (:foreground ,mystic :slant normal))))
    `(tree-sitter-hl-face:namespace             ((t (:foreground ,mystic :slant italic))))
    `(tree-sitter-hl-face:attribute             ((t (:foreground ,mystic))))
    `(tree-sitter-hl-face:tag                   ((t (:foreground ,pastelgreen))))
@@ -275,7 +275,7 @@
    `(ansi-color-black          ((t (:foreground ,bg-dark :background ,bg-dark))))
    `(ansi-color-red            ((t (:foreground ,punch :background ,punch))))
    `(ansi-color-green          ((t (:foreground ,green :background ,green))))
-   `(ansi-color-yellow         ((t (:foreground ,fg :background ,fg))))        ; ansi yellow = tan
+   `(ansi-color-yellow         ((t (:foreground ,fg :background ,fg))))
    `(ansi-color-blue           ((t (:foreground ,turquoise :background ,turquoise))))
    `(ansi-color-magenta        ((t (:foreground ,purple :background ,purple))))
    `(ansi-color-cyan           ((t (:foreground ,riptide :background ,riptide))))

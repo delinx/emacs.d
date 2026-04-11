@@ -42,3 +42,6 @@ undo-tree-history/
 .#*
 
 *.eld
+
+server/
+transient/
