@@ -155,10 +155,11 @@
 
 (use-package evil
   :init
-  (setq evil-want-integration t
+  (setq evil-want-integration nil
         evil-want-keybinding nil
         evil-want-C-u-scroll t
         evil-undo-system 'undo-redo
+        evil-default-state 'emacs
         evil-normal-state-cursor   '(box)
         evil-insert-state-cursor   '(box)
         evil-visual-state-cursor   '(box)
@@ -166,9 +167,21 @@
         evil-operator-state-cursor '(box)
         evil-emacs-state-cursor    '(box))
   :config
+  (setq evil-normal-state-modes
+        '(prog-mode
+          text-mode
+          jai-mode
+          conf-mode
+          yaml-mode
+          toml-mode))
+  (setq evil-motion-state-modes nil)
   (evil-set-leader 'normal (kbd "SPC"))
   (evil-set-leader 'visual (kbd "SPC"))
   (evil-mode 1))
+
+(with-eval-after-load 'evil
+  (defalias #'forward-evil-word #'forward-evil-symbol)
+  (setq-default evil-symbol-word-search t))
 
 (with-eval-after-load 'evil
   (defalias #'forward-evil-word #'forward-evil-symbol)
@@ -207,6 +220,10 @@
   (evil-define-key '(insert) 'global
     (kbd "C-SPC") #'completion-at-point)
 
+    (evil-define-key '(normal visual) 'global
+        (kbd "C-d") (lambda () (interactive) (evil-scroll-down (max 1 (/ (window-height) 4))))
+        (kbd "C-u") (lambda () (interactive) (evil-scroll-up  (max 1 (/ (window-height) 4)))))
+
   (evil-define-key 'normal 'global
     (kbd "<leader>x") #'execute-extended-command
     (kbd "<leader>ff") #'project-find-file
@@ -216,9 +233,9 @@
     (kbd "<leader>e")  #'treemacs
     (kbd "<leader>x")  #'execute-extended-command
     (kbd "<leader>kk")  #'kill-current-buffer
+    (kbd "<leader>z")  #'evil-execute-in-emacs-state
+    (kbd "<leader>fg") #'deadgrep
     (kbd "<leader>kw")  (lambda () (interactive) (kill-buffer-and-window))))
-
-
 
 
 ;;; --- Completion
@@ -263,7 +280,9 @@
   :ensure t
   :custom
   (iflipb-wrap-around t)
-  (iflipb-ignore-buffers (list "^[*]"))
+  (iflipb-ignore-buffers (lambda (buf)
+                         (and (string-match-p "^[*]" buf)
+                         (not (string-match-p "^\\*deadgrep" buf)))))
   :bind (:map my-override-map
          ("C-s" . iflipb-previous-buffer)
          ("C-t" . iflipb-next-buffer)))
@@ -347,3 +366,8 @@
 (add-hook 'jai-mode-hook
           (lambda ()
             (setq-local beginning-of-defun-function nil)))
+
+
+
+;; Safe paths
+(add-to-list 'safe-local-variable-directories "A:/Projects/uST01_j/")
