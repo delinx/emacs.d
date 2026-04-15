@@ -22,11 +22,6 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
 
-;;; --- Aliases
-
-(with-eval-after-load 'evil
-  (evil-ex-define-cmd "W" 'evil-write))
-
 ;;; --- Visual
 
 (setq inhibit-startup-message t)
@@ -153,40 +148,6 @@
       save-interprogram-paste-before-kill t
       select-enable-primary nil)
 
-(use-package evil
-  :init
-  (setq evil-want-integration nil
-        evil-want-keybinding nil
-        evil-want-C-u-scroll t
-        evil-undo-system 'undo-redo
-        evil-default-state 'emacs
-        evil-normal-state-cursor   '(box)
-        evil-insert-state-cursor   '(box)
-        evil-visual-state-cursor   '(box)
-        evil-replace-state-cursor  '(box)
-        evil-operator-state-cursor '(box)
-        evil-emacs-state-cursor    '(box))
-  :config
-  (setq evil-normal-state-modes
-        '(prog-mode
-          text-mode
-          jai-mode
-          conf-mode
-          yaml-mode
-          toml-mode))
-  (setq evil-motion-state-modes nil)
-  (evil-set-leader 'normal (kbd "SPC"))
-  (evil-set-leader 'visual (kbd "SPC"))
-  (evil-mode 1))
-
-(with-eval-after-load 'evil
-  (defalias #'forward-evil-word #'forward-evil-symbol)
-  (setq-default evil-symbol-word-search t))
-
-(with-eval-after-load 'evil
-  (defalias #'forward-evil-word #'forward-evil-symbol)
-  (setq-default evil-symbol-word-search t))
-
 ;;; --- Keybinds
 
 ;;; Override minor mode — bindings here beat everything
@@ -196,47 +157,8 @@
   :global t
   :keymap my-override-map)
 (my-override-mode 1)
-(evil-make-intercept-map my-override-map)
-
-(add-hook 'minibuffer-setup-hook
-          (lambda ()
-            (local-set-key (kbd "C-v") #'clipboard-yank)))
-
 (with-eval-after-load 'evil
-  (define-key evil-insert-state-map (kbd "C-v") #'clipboard-yank)
-
-  (evil-define-key 'visual 'global
-    (kbd "C-c") #'clipboard-kill-ring-save)
-
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (evil-local-set-key 'normal (kbd "K") #'eldoc-print-current-symbol-info)))
-
-  (evil-define-key '(normal visual motion) 'global
-    (kbd "<leader>kb") #'kill-current-buffer
-    (kbd "gb") #'xref-go-back
-    (kbd "K") #'eldoc-print-current-symbol-info)
-
-  (evil-define-key '(insert) 'global
-    (kbd "C-SPC") #'completion-at-point)
-
-    (evil-define-key '(normal visual) 'global
-        (kbd "C-d") (lambda () (interactive) (evil-scroll-down (max 1 (/ (window-height) 4))))
-        (kbd "C-u") (lambda () (interactive) (evil-scroll-up  (max 1 (/ (window-height) 4)))))
-
-  (evil-define-key 'normal 'global
-    (kbd "<leader>x") #'execute-extended-command
-    (kbd "<leader>ff") #'project-find-file
-    (kbd "<leader>fr") #'recentf-open
-    (kbd "<leader>bb") #'buffer-menu
-    (kbd "<leader>pp") #'project-switch-project
-    (kbd "<leader>e")  #'treemacs
-    (kbd "<leader>x")  #'execute-extended-command
-    (kbd "<leader>kk")  #'kill-current-buffer
-    (kbd "<leader>z")  #'evil-execute-in-emacs-state
-    (kbd "<leader>fg") #'deadgrep
-    (kbd "<leader>kw")  (lambda () (interactive) (kill-buffer-and-window))))
-
+  (evil-make-intercept-map my-override-map))
 
 ;;; --- Completion
 
@@ -299,8 +221,8 @@
           (lambda ()
             (text-scale-set -1.5)))
 
-(use-package treemacs-evil
-  :after (treemacs evil))
+;(use-package treemacs-evil
+;  :after (treemacs evil))
 
 (use-package treemacs-nerd-icons
   :after (treemacs nerd-icons)
@@ -369,5 +291,58 @@
 
 
 
+;;;;; which-key
+(use-package which-key
+  :ensure nil ;; built-in
+  :demand t
+  :config
+  (which-key-mode)
+  ;; Set the delay before which-key appears.
+  (setq-default which-key-idle-delay 1.0)
+  ;; which-key will truncate special keys by default, eg. SPC turns into
+  ;; an orange D. Turn this off to avoid confusion.
+  (setq-default which-key-special-keys nil)
+  ;; Hit C-h C-k to have which-key show you all top level key bindings.
+  :bind ("C-h C-k" . which-key-show-top-level)
+  :diminish which-key-mode)
+
+
 ;; Safe paths
 (add-to-list 'safe-local-variable-directories "A:/Projects/uST01_j/")
+
+;; Meow
+; (let ((lisp-dir (expand-file-name "config" user-emacs-directory)))
+;   (unless (file-directory-p lisp-dir)
+;     (make-directory lisp-dir t))
+;   (add-to-list 'load-path lisp-dir))
+; (require 'init-meow)
+; (defun reload-meow-config ()
+;   "Reload meow-config.el from the Emacs config directory."
+;   (interactive)
+;   (load (expand-file-name "init-meow" (expand-file-name "config" user-emacs-directory)))
+;   (message "init-meow reloaded"))
+
+
+;; Boon
+; (let ((lisp-dir (expand-file-name "config" user-emacs-directory)))
+;   (unless (file-directory-p lisp-dir)
+;     (make-directory lisp-dir t))
+;   (add-to-list 'load-path lisp-dir))
+; (require 'init-boon)
+; (defun reload-boon-config ()
+;   "Reload init-boon.el from the Emacs config directory."
+;   (interactive)
+;   (load (expand-file-name "init-boon" (expand-file-name "config" user-emacs-directory)))
+;   (message "init-boon reloaded"))
+
+;; Evil
+ (let ((lisp-dir (expand-file-name "config" user-emacs-directory)))
+   (unless (file-directory-p lisp-dir)
+     (make-directory lisp-dir t))
+   (add-to-list 'load-path lisp-dir))
+ (require 'init-evil)
+ (defun reload-evil-config ()
+   "Reload init-evil.el from the Emacs config directory."
+   (interactive)
+   (load (expand-file-name "init-evil" (expand-file-name "config" user-emacs-directory)))
+   (message "init-evil reloaded"))

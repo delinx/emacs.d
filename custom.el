@@ -17,10 +17,7 @@
      "8bc88908a21c653559003cc87a3a5801131fbf90937b6d9d9c332cf4d4138d21"
      "43ca64f8b46fef61f7fe0a66183de858311f4a95d97cc07893d815323d5c38b3"
      "6ec1318b4c1948791936ecf2af30c0345aae61a36605b84174b5a617429f2e0f" default))
- '(package-selected-packages
-   '(centaur-tabs consult corfu deadgrep doom-modeline doom-themes ef-themes eglot-booster evil-collection gcmh hotfuzz
-                  iflipb jai-mode ligature magit marginalia nerd-icons-completion nerd-icons-corfu nord-theme orderless
-                  popper tree-sitter-langs treemacs-evil treemacs-nerd-icons treemacs-projectile treesit-auto vertico))
+ '(package-selected-packages nil)
  '(safe-local-variable-values
    '((eval progn
            (defun my/deadgrep-add-jai-path (args)
