@@ -22,6 +22,29 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
 
+;;; --- Parents
+(use-package smartparens
+  :ensure t
+  :init
+  ;; disable built-in paren highlighting (they conflict visually/behaviorally)
+  (show-paren-mode -1)
+
+  :config
+  (require 'smartparens-config)
+
+  ;; enable globally
+  (smartparens-global-mode 1)
+
+  ;; optional but recommended: highlight matching pairs
+  (show-smartparens-global-mode 1)
+
+  ;; keybindings similar to Emacs defaults but smarter
+  (define-key smartparens-mode-map (kbd "C-M-f") #'sp-forward-sexp)
+  (define-key smartparens-mode-map (kbd "C-M-b") #'sp-backward-sexp)
+  (define-key smartparens-mode-map (kbd "C-M-d") #'sp-down-sexp)
+  (define-key smartparens-mode-map (kbd "C-M-u") #'sp-backward-up-sexp)
+)
+
 ;;; --- Visual
 
 (setq inhibit-startup-message t)
@@ -40,7 +63,10 @@
 (add-to-list 'custom-theme-load-path
              (expand-file-name "themes" user-emacs-directory))
 
-(load-theme 'doom-delcx-dusk t)
+;(load-theme 'doom-delcx-dusk t)
+(setq-default cursor-type 'box)
+(load-theme 'modus-operandi t)
+(load-theme 'dacme)
 
 (defvar delcx-themes
   ;doom-delcx-parchment
@@ -60,7 +86,8 @@
 (when (and (eq system-type 'windows-nt)
            (boundp 'w32-mihails-cursor-color)
            (fboundp 'w32-update-mihails-cursor-color))
-  (setq w32-mihails-cursor-color "black")
+  ;(setq w32-mihails-cursor-color "black")
+  (setq w32-mihails-cursor-color "white")
   (w32-update-mihails-cursor-color))
 
 (use-package nerd-icons)
@@ -79,8 +106,13 @@
 (defvar light-mode t)
 
 (if light-mode
-    (set-frame-font "Iosevka-20.0:antialias=subpixel" nil t)
+    (set-frame-font "Iosevka-20.0:antialias=standard" nil t)
   (set-frame-font "Iosevka-19.5:antialias=standard" nil t))
+
+(defvar old-school-mode nil)
+(if old-school-mode
+    (set-frame-font "CozetteVector-12.0:antialias=none" nil t)
+    )
 
 (setq-default line-spacing 0.1)
 
@@ -274,10 +306,6 @@
 ;;; --- Langs
 
 ; --- Jai
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-               '(jai-mode . ("jails"))))
-
 (use-package jai-mode
   :vc (:url "https://github.com/elp-revive/jai-mode" :rev :newest)
   :mode "\\.jai\\'"
@@ -285,11 +313,35 @@
          (jai-mode . (lambda ()
                        (setq-local tab-width 4
                                    indent-tabs-mode nil)))))
+
 (add-hook 'jai-mode-hook
           (lambda ()
             (setq-local beginning-of-defun-function nil)))
 
+(defvar my/jai-control-flow-keywords
+  '("return" "break" "continue" "defer" "remove" "assert" "\#load" "\#import"
+    "inline" "no_inline" "for" "switch" "case" "while" "if" "else"))
 
+(defun my/jai-control-flow-matcher (limit)
+  (let ((pattern (concat "\\_<\\("
+                         (string-join my/jai-control-flow-keywords "\\|")
+                         "\\)\\_>"))
+        result)
+    (while (and (not result)
+                (re-search-forward pattern limit t))
+      (unless (or (nth 3 (syntax-ppss))
+                  (nth 4 (syntax-ppss)))
+        (setq result t)))
+    result))
+
+(add-hook 'jai-mode-hook
+          (lambda ()
+            (font-lock-add-keywords
+             nil
+             '((my/jai-control-flow-matcher 1 'font-lock-control-flow-keyword-face t)))))
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs '(jai-mode . ("jails"))))
 
 ;;;;; which-key
 (use-package which-key

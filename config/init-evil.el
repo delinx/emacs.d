@@ -73,8 +73,8 @@
     ;; Colemak movement
     (kbd "s") #'evil-backward-char
     (kbd "t") #'evil-forward-char
-    (kbd "n") #'evil-next-line
-    (kbd "e") #'evil-previous-line
+    (kbd "e") #'evil-next-line
+    (kbd "n") #'evil-previous-line
     ;; Navigation
     (kbd "gb") #'xref-go-back
     (kbd "K")  #'eldoc-print-current-symbol-info
@@ -90,16 +90,16 @@
     (kbd "8") #'digit-argument
     (kbd "9") #'digit-argument
     ;; Other
-    (kbd "C-:")  #'eval-expression
-    (kbd "B") #'evil-backward-WORD-begin
+    (kbd "C-:") #'eval-expression
+    (kbd "b") #'evil-backward-WORD-begin
     (kbd "e") #'evil-forward-word-end
     (kbd "f") #'evil-find-char
     (kbd "F") #'evil-find-char-backward
     (kbd "G") #'evil-goto-line
     (kbd "s") #'evil-backward-char
     (kbd "t") #'evil-forward-char
-    (kbd "n") #'evil-next-line
-    (kbd "e") #'evil-previous-line
+    (kbd "e") #'evil-next-line
+    (kbd "n") #'evil-previous-line
     (kbd "K") #'evil-lookup
     (kbd "m") #'evil-search-next
     (kbd "M") #'evil-search-previous
@@ -130,8 +130,8 @@
 
   ;; --- Scrolling (normal, visual)
   (evil-define-key '(normal visual) 'global
-    (kbd "C-n") (lambda () (interactive) (evil-scroll-down (max 1 (/ (window-height) 4))))
-    (kbd "C-e") (lambda () (interactive) (evil-scroll-up   (max 1 (/ (window-height) 4))))
+    (kbd "C-e") (lambda () (interactive) (evil-scroll-down (max 1 (/ (window-height) 4))))
+    (kbd "C-n") (lambda () (interactive) (evil-scroll-up   (max 1 (/ (window-height) 4))))
     (kbd "p") #'evil-paste-after
     (kbd "P") #'evil-paste-before
     (kbd "d") #'evil-delete
@@ -184,8 +184,8 @@
 
   (evil-define-key nil evil-window-map
     (kbd "s") #'evil-window-left
-    (kbd "e") #'evil-window-up
-    (kbd "n") #'evil-window-down
+    (kbd "n") #'evil-window-up
+    (kbd "e") #'evil-window-down
     (kbd "t") #'evil-window-right
     (kbd "k") #'evil-window-delete
     (kbd "a") #'evil-window-new
